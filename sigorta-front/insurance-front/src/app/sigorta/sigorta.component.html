@@ -1,0 +1,91 @@
+<div class="topbar">
+  <div class="menu-icon" (click)="toggleSidebar()">&#9776;</div>
+  <div class="logo">
+    <i class="fas fa-home"></i>
+    <span>Insurance Detector App</span>
+  </div>
+  <!-- Backend bağlantı durumu -->
+  <div class="connection-status" [class.connected]="isBackendConnected" [class.disconnected]="!isBackendConnected">
+    <span *ngIf="isBackendConnected">Backend Bağlantısı: Aktif</span>
+    <span *ngIf="!isBackendConnected">Backend Bağlantısı: Devre Dışı</span>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" [class.open]="isSidebarOpen">
+  <button class="close-btn" (click)="toggleSidebar()">&#x2718;</button>
+  <a routerLink="/home">  <i class="fas fa-home"></i> Home Page</a>
+  <a routerLink="/completed"> <i class="fa fa-check" aria-hidden="true"></i> Find Your Insurance - Take The Test </a>
+  <a routerLink="/discover"> <i class="fa fa-compass" aria-hidden="true"></i> Discover Other Insurances</a>
+</div>
+
+<!--kullanıcıdan ad soyad tc alma kısmı-->
+<div class="name-surname-tc-container" *ngIf="!showQuestions">
+  <div class="user-info-container" *ngIf="!formSubmitted && currentQuestionIndex === 0">
+    <h2>Kişisel Bilgilerinizi Girin</h2>
+    <form #userInfoForm="ngForm" (ngSubmit)="startQuiz()">
+      <div class="input-group">
+        <label for="name">İsim</label>
+        <input type="text" id="name" name="name" [(ngModel)]="userInfo.name" required />
+      </div>
+      <div class="input-group">
+        <label for="surname">Soyisim</label>
+        <input type="text" id="surname" name="surname" [(ngModel)]="userInfo.surname" required />
+      </div>
+      <div class="input-group">
+        <label for="tc">TC Kimlik Numarası</label>
+        <input type="text" id="tc" name="tc" [(ngModel)]="userInfo.tc" required maxlength="11" />
+      </div>
+      <button type="submit" [disabled]="!userInfoForm.valid">Başla</button>
+    </form>
+  </div>
+</div>
+
+<!--soruların başladığı kısım-->
+<div *ngIf="showQuestions">
+  <div class="quiz-wrapper">
+    <div class="form-container" *ngIf="!formSubmitted">
+      <h2>{{ questions[currentQuestionIndex].text }}</h2>
+
+      <div class="options">
+        <button
+          *ngFor="let option of questions[currentQuestionIndex].options"
+          [class.selected]="isSelected(option)"
+          (click)="nextQuestion(option)">
+          {{ option }}
+        </button>
+      </div>
+
+      <div class="navigation-buttons" *ngIf="currentQuestionIndex > 0">
+        <button (click)="previousQuestion()">Geri Git</button>
+      </div>
+    </div>
+
+    <!-- Yükleniyor göstergesi -->
+    <div class="loading-container" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Sigorta değerlendirmesi yapılıyor...</p>
+    </div>
+
+    <!-- Hata mesajı -->
+    <div class="error-container" *ngIf="error">
+      <p class="error-message">{{ error }}</p>
+      <button (click)="resetForm()">Yeniden Dene</button>
+    </div>
+
+    <!-- Sonuç gösterimi -->
+    <div class="result-container" *ngIf="formSubmitted && !loading">
+      <h2>Değerlendirme Sonucu:</h2>
+      <div class="result-box" [ngClass]="{
+        'approved': sigortaSonucu.includes('onaylandı'),
+        'denied': sigortaSonucu.includes('reddedildi')
+      }">
+        <p>{{ sigortaSonucu }}</p>
+      </div>
+      <div class="result-actions">
+        <button (click)="resetForm()">Yeniden Dene</button>
+        <button (click)="startNewUser()">Başka Kişi İçin Dene</button>
+      </div>
+    </div>
+  </div>
+</div>
